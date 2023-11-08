@@ -1,0 +1,136 @@
+import itertools
+import random as rand
+from string import ascii_uppercase
+
+# Function to generate mine coordinates
+def generate_mines():
+    return [ascii_uppercase[a] + str(b + 1) for a, b in rand.sample(list(itertools.product(range(7), repeat=2)), k=8)]
+
+# Function to create a Minesweeper grid
+def create_minesweeper_grid():
+    grid_size = 7
+    mines = generate_mines()
+
+# Initialize the grid with empty cells
+    grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+
+# Place mines on the grid
+    for mine in mines:
+        col, row = mine[0], int(mine[1]) - 1
+        grid[row][ord(col) - ord('A')] = '!'
+
+# Calculate and fill in the numbers
+    for row in range(grid_size):
+        for col in range(grid_size):
+            if grid[row][col] != '!':
+                count = count_adjacent_mines(grid, row, col)
+                if count > -1:
+                    grid[row][col] = str(count)
+
+    return grid
+
+
+# Function to count adjacent mines
+def count_adjacent_mines(grid, row, col):
+    directions = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+    count = 0
+
+    for dr, dc in directions:
+        r, c = row + dr, col + dc
+        if 0 <= r < len(grid) and 0 <= c < len(grid[0]) and grid[r][c] == '!':
+            count += 1
+
+    return count
+
+# Function to print the Minesweeper grid
+def print_minesweeper_grid(grid):
+    print('_' * 30)
+    top_coordinates = '    ' + '   '.join('ABCDEFG')
+    print(top_coordinates)
+    print('_' * 30)
+
+    for i, row in enumerate(grid):
+        print(str(i + 1) + '   ' + '   '.join(row))
+        print('_' * 30)
+
+def reveal_cell(grid, row, col):
+    if grid[row][col] == '.':
+        grid[row][col] = '.'
+
+if __name__ == "__main__":
+
+# Generate mine coordinates
+    coords = generate_mines()
+
+# Create and display the Minesweeper grid
+    mines = generate_mines()
+    
+    grid = [['.' for _ in range(7)] for _ in range(7)]
+    print('~' * 30)
+    print("       MINESWEEPER GAME")
+    print('~' * 30)
+    
+
+# Function to check if a cell is valid
+def is_valid_cell(cell):
+    return len(cell) == 2 and cell[0] in ascii_uppercase[:7] and cell[1].isdigit() and 1 <= int(cell[1]) <= 7
+
+
+# Function to update the game state by revealing a cell
+def reveal_cell(grid, cell):
+    row = ord(cell[0]) - ord('A')
+    col = int(cell[1]) - 1
+
+    if grid[row][col] == '!':
+        return 'lose'  
+        # Player loses if they reveal a mine
+
+    else:
+        count = 0
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                r, c = row + dr, col + dc
+                if 0 <= r < 7 and 0 <= c < 7 and grid[r][c] == '!':
+                    count += 1
+        grid[row][col] = str(count) if count > -1 else ' '
+        return 'continue'  
+    # Player can continue playing
+
+# Function to check if the player wins
+def has_won(grid):
+    for row in grid:
+        for cell in row:
+            if cell == '.':
+                return False
+    return True
+
+# Create the Minesweeper grid
+minesweeper_grid = create_minesweeper_grid()
+
+# Loop for the game
+game_over = False
+while not game_over:
+    print_minesweeper_grid(grid)
+    print('')
+    cell = input("Enter a coordinate to be opened [A-G] [1-7]: ")
+    print('')
+
+    if is_valid_cell(cell):
+        result = reveal_cell(minesweeper_grid, cell)
+
+        if result == 'lose':
+            game_over = True
+            print_minesweeper_grid(minesweeper_grid)
+            print('')
+            print("You lose! There was a mine at", cell)
+        elif result == 'continue':
+            continue 
+        elif has_won(minesweeper_grid):
+            game_over = True
+            print_minesweeper_grid(minesweeper_grid)
+            print('')
+            print("Congartulations, You win! All safe cells are revealed.")
+    else:
+        print("Invalid coordinate. Please enter a valid coordinate ([A-G] [1-7]).")
+
+# End of the game
